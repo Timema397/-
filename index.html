@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Общие люди</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6fb; margin: 0; padding: 20px; }
+    .wrap { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+    h1 { text-align: center; margin-top: 0; }
+    #messages { height: 380px; overflow-y: auto; border: 1px solid #e1e5ee; border-radius: 8px; padding: 10px; margin-bottom: 12px; background: #fafbfd; }
+    .msg { margin-bottom: 10px; }
+    .msg b { color: #3a5bd9; }
+    .msg span { color: #999; font-size: 12px; margin-left: 6px; }
+    form { display: flex; flex-direction: column; gap: 8px; }
+    input, textarea { padding: 10px; border: 1px solid #ccd3e0; border-radius: 8px; font-size: 15px; }
+    button { padding: 10px; border: none; border-radius: 8px; background: #3a5bd9; color: #fff; font-size: 16px; cursor: pointer; }
+    button:hover { background: #2d48b3; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Общие люди</h1>
+    <div id="messages"></div>
+    <form id="chatForm">
+      <input id="nick" placeholder="Твой ник" maxlength="30" required>
+      <textarea id="text" rows="2" placeholder="Напиши сообщение..." maxlength="500" required></textarea>
+      <button type="submit">Отправить</button>
+    </form>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsgSCG4BR5cQ73ofTrBEosj-Y307ikcWA",
+      authDomain: "ddiiaa.firebaseapp.com",
+      databaseURL: "https://ddiiaa-default-rtdb.firebaseio.com",
+      projectId: "ddiiaa",
+      storageBucket: "ddiiaa.firebasestorage.app",
+      messagingSenderId: "552019275103",
+      appId: "1:552019275103:web:98fdeb3d9e4e1e81059aea"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const messagesRef = ref(db, "messages");
+
+    const box = document.getElementById('messages');
+    const form = document.getElementById('chatForm');
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    onChildAdded(messagesRef, snap => {
+      const m = snap.val();
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.innerHTML = `<b>${esc(m.nick)}</b><span>${esc(m.time)}</span><div>${esc(m.text)}</div>`;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    });
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const nick = document.getElementById('nick').value.trim();
+      const text = document.getElementById('text').value.trim();
+      if (!nick || !text) return;
+      await push(messagesRef, { nick, text, time: new Date().toLocaleString('ru-RU') });
+      document.getElementById('text').value = '';
+    });
+  </script>
+</body>
+</html>
